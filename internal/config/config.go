@@ -6,15 +6,9 @@ import (
 )
 
 type Config struct {
-	AdminToken     string            `json:"admin_token"`
-	HTTPPort       string            `json:"http_port"`
-	HTTPSPort      string            `json:"https_port"`
-	UseHTTPS       bool              `json:"use_https"`
-	CertFile       string            `json:"cert_file"`
-	KeyFile        string            `json:"key_file"`
-	VirtualHosts   map[string]string `json:"virtual_hosts"`
-	FileServer     string            `json:"file_server"`
-	BandwidthLimit int               `json:"bandwidth_limit"`
+	HTTPPort     string            `json:"http_port"`
+	VirtualHosts map[string]string `json:"virtual_hosts"`
+	FileServer   string            `json:"file_server"`
 }
 
 func LoadConfig(filename string) (*Config, error) {
