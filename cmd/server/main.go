@@ -29,7 +29,10 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	mux.Handle("/apps/", handlers.ProxyHandler(cfg))
+	mux.Handle("/{$}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello World"))
+	}))
+	mux.Handle("/app/", handlers.ProxyHandler(cfg))
 	mux.Handle("/files/", handlers.FileHandler(cfg))
 
 	error := srv.ListenAndServe()

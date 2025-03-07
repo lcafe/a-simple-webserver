@@ -17,7 +17,7 @@ type pathBasedHandler struct {
 
 // Uma nova função que serve os VirtualHosts definidos no arquivo de configuração.
 func ProxyHandler(cfg *config.Config) http.Handler {
-	// Path-based routing (para backends via VirtualHosts)
+	// Path-based routing (para cfg.VirtualHosts[]s via VirtualHosts)
 	baseHandler := &pathBasedHandler{
 		cfg: cfg,
 		fallback: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -26,14 +26,11 @@ func ProxyHandler(cfg *config.Config) http.Handler {
 	}
 
 	// Para cada VirtualHost, cria um proxy reverso.
-	for prefix, backend := range cfg.VirtualHosts {
-		app_prefix := "/apps" + prefix
-		proxy := http.StripPrefix(app_prefix, httputil.NewSingleHostReverseProxy(parseURL(backend)))
-		baseHandler.fallback = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Printf("VirtualHost: encaminhando %s para %s", app_prefix, backend)
-			proxy.ServeHTTP(w, r)
-		})
-	}
+	proxy := http.StripPrefix("/app", httputil.NewSingleHostReverseProxy(parseURL(cfg.VirtualHost)))
+	baseHandler.fallback = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("VirtualHost: encaminhando %s para %s", "/app", cfg.VirtualHost)
+		proxy.ServeHTTP(w, r)
+	})
 	return baseHandler.fallback
 }
 
