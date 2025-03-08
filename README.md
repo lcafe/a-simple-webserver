@@ -9,9 +9,14 @@ A configuração é feita através do arquivo `internal/config/config.json`.
 EXEMPLO: 
 ```json
 {
-    "http_port": ":8080",
-    "virtual_host": "http://localhost:3000",
-    "file_server": "public"
+    "http_port": ":8000",
+    "proxy_prefix": "/app/",
+    "virtual_hosts": {
+        "/example" : "http://example.com",
+        "/hello" : "http://example.org"
+    },
+    "file_server_root_url" : "/files/",
+    "file_server":  "./public-example"
 }
 ```
 
@@ -24,8 +29,8 @@ Para rodar o servidor, execute o comando `go run cmd/server/main.go`.
 O servidor suporta as seguintes rotas:
 
 - `/`: retorna "Hello World"
-- `/app/`: redireciona para o VirtualHost definido no arquivo de configuração
-- `/files/`: redireciona para o diretório definido no arquivo de configuração
+- `proxy_prefix`: redireciona para o VirtualHost definido no arquivo de configuração
+- `file_server_root_url`: redireciona para o diretório definido no arquivo de configuração
 
 ## VirtualHosts
 
@@ -33,7 +38,7 @@ Para cada VirtualHost definido no arquivo de configuração, o servidor cria um 
 
 Exemplo:
 
-- Se o VirtualHost for `http://localhost:3000`, o servidor criará um proxy reverso para `http://localhost:HTTP_PORT/app/`.
+- Se o VirtualHost for `http://example.com`, o servidor criará um proxy reverso para `http://your-server:HTTP_PORT/proxy_prefix/example`.
 
 ## Arquivos estáticos
 
