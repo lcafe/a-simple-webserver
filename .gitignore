@@ -1,6 +1,9 @@
 # config.json
 internal/config/config.json
 
+# public/demo folder
+public/demo
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

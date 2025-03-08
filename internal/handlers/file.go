@@ -14,5 +14,9 @@ func FileHandler(cfg *config.Config) http.Handler {
 		return http.DefaultServeMux
 	}
 
+	if _, err := http.Get(cfg.FileServer + "/index.html"); err == nil {
+		return http.DefaultServeMux
+	}
+
 	return http.StripPrefix(cfg.FileServerRootUrl, http.FileServer(http.Dir(cfg.FileServer)))
 }
