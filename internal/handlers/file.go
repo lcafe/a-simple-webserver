@@ -14,5 +14,5 @@ func FileHandler(cfg *config.Config) http.Handler {
 		return http.DefaultServeMux
 	}
 
-	return http.StripPrefix("/files/", http.FileServer(http.Dir(cfg.FileServer)))
+	return http.StripPrefix(cfg.FileServerRootUrl, http.FileServer(http.Dir(cfg.FileServer)))
 }

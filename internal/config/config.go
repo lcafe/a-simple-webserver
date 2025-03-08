@@ -6,9 +6,11 @@ import (
 )
 
 type Config struct {
-	HTTPPort    string `json:"http_port"`
-	VirtualHost string `json:"virtual_host"`
-	FileServer  string `json:"file_server"`
+	HTTPPort          string            `json:"http_port"`
+	ProxyPrefix       string            `json:"proxy_prefix"`
+	VirtualHosts      map[string]string `json:"virtual_hosts"`
+	FileServerRootUrl string            `json:"file_server_root_url"`
+	FileServer        string            `json:"file_server"`
 }
 
 func LoadConfig(filename string) (*Config, error) {

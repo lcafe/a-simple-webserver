@@ -32,8 +32,9 @@ func main() {
 	mux.Handle("/{$}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello World"))
 	}))
-	mux.Handle("/app/", handlers.ProxyHandler(cfg))
-	mux.Handle("/files/", handlers.FileHandler(cfg))
+
+	mux.Handle(cfg.ProxyPrefix, handlers.ProxyHandler(cfg))
+	mux.Handle(cfg.FileServerRootUrl, handlers.FileHandler(cfg))
 
 	error := srv.ListenAndServe()
 	log.Fatal(error)
