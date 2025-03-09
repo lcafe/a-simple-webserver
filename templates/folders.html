@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Listagem de Diretório - {{.Dir}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fafafa;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    a {
+      color: #0077cc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>A simple webserver</h1>
+  <h2>Listagem de Diretório - {{.Dir}}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Tamanho</th>
+        <th>Modificado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{if .ParentURL}}
+      <tr>
+        <td>
+          <a href="{{.ParentURL}}">..</a>
+        </td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      {{end}}
+      {{range .Entries}}
+      <tr>
+        <td>
+          <a href="{{.URL}}">{{.Name}}</a>
+        </td>
+        <td>{{.Size}}</td>
+        <td>{{.ModTime}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</body>
+</html>
