@@ -11,6 +11,7 @@ EXEMPLO:
 {
     "http_port": ":8000",
     "proxy_prefix": "/app/",
+    "max_virtual_hosts": 5,
     "virtual_hosts": {
         "/example" : "http://example.com",
         "/hello" : "http://example.org"
@@ -39,6 +40,8 @@ Para cada VirtualHost definido no arquivo de configuração, o servidor cria um 
 Exemplo:
 
 - Se o VirtualHost for `http://example.com`, o servidor criará um proxy reverso para `http://your-server:HTTP_PORT/proxy_prefix/example`.
+
+O limite de VirtualHosts é definido no arquivo de configuração pela variavel `max_virtual_hosts`.
 
 ## Arquivos estáticos
 
