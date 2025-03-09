@@ -11,60 +11,66 @@ import (
 )
 
 func ProxyHandler(cfg *config.Config) http.Handler {
+	normalizeProxyPrefix(cfg)
+	proxyMap := buildProxyMap(cfg)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		matchedProxy := matchProxy(cfg.ProxyPrefix, proxyMap, r.URL.Path)
+		if matchedProxy != nil {
+			matchedProxy.ServeHTTP(w, r)
+			return
+		}
+		http.NotFound(w, r)
+	})
+}
+
+func normalizeProxyPrefix(cfg *config.Config) {
 	if !strings.HasPrefix(cfg.ProxyPrefix, "/") {
 		cfg.ProxyPrefix = "/" + cfg.ProxyPrefix
 	}
 	if !strings.HasSuffix(cfg.ProxyPrefix, "/") {
 		cfg.ProxyPrefix += "/"
 	}
+}
 
+func buildProxyMap(cfg *config.Config) map[string]*httputil.ReverseProxy {
 	proxyMap := make(map[string]*httputil.ReverseProxy)
 
 	for path, targetURL := range cfg.VirtualHosts {
-		path = strings.TrimPrefix(path, "/")
-
-		fullPath := path
-
+		normalizedPath := strings.TrimPrefix(path, "/")
 		target := parseURL(targetURL)
-
 		proxy := httputil.NewSingleHostReverseProxy(target)
-
 		originalDirector := proxy.Director
 		proxy.Director = func(req *http.Request) {
 			originalDirector(req)
-
-			pathPrefix := cfg.ProxyPrefix + fullPath
-			req.URL.Path = strings.TrimPrefix(req.URL.Path, pathPrefix)
-			if !strings.HasPrefix(req.URL.Path, "/") {
-				req.URL.Path = "/" + req.URL.Path
-			}
+			adjustRequestPath(req, cfg.ProxyPrefix, normalizedPath)
 		}
-
-		proxyMap[fullPath] = proxy
+		proxyMap[normalizedPath] = proxy
 	}
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := strings.TrimPrefix(r.URL.Path, cfg.ProxyPrefix)
+	return proxyMap
+}
 
-		var matchedPath string
-		var matchedProxy *httputil.ReverseProxy
+func adjustRequestPath(req *http.Request, proxyPrefix, path string) {
+	pathPrefix := proxyPrefix + path
+	req.URL.Path = strings.TrimPrefix(req.URL.Path, pathPrefix)
+	if !strings.HasPrefix(req.URL.Path, "/") {
+		req.URL.Path = "/" + req.URL.Path
+	}
+}
 
-		for proxyPath, proxy := range proxyMap {
-			if strings.HasPrefix(path, proxyPath) {
-				if len(proxyPath) > len(matchedPath) {
-					matchedPath = proxyPath
-					matchedProxy = proxy
-				}
-			}
+func matchProxy(proxyPrefix string, proxyMap map[string]*httputil.ReverseProxy, requestPath string) *httputil.ReverseProxy {
+	trimmedPath := strings.TrimPrefix(requestPath, proxyPrefix)
+	var matchedPath string
+	var matchedProxy *httputil.ReverseProxy
+
+	for path, proxy := range proxyMap {
+		if strings.HasPrefix(trimmedPath, path) && len(path) > len(matchedPath) {
+			matchedPath = path
+			matchedProxy = proxy
 		}
-
-		if matchedProxy != nil {
-			matchedProxy.ServeHTTP(w, r)
-			return
-		}
-
-		http.NotFound(w, r)
-	})
+	}
+	return matchedProxy
 }
 
 func parseURL(raw string) *url.URL {

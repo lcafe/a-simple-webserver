@@ -20,22 +20,33 @@ func maskSensitiveData(input string) string {
 func LogRequest(r *http.Request) {
 	log.Println(">>> Requisição recebida:")
 	log.Printf("Método: %s, URL: %s", r.Method, r.URL.String())
-	for k, v := range r.Header {
-		log.Printf("Header: %s = %v", k, v)
+	logHeaders(r.Header)
+	logRequestBody(r)
+}
+
+func logHeaders(headers http.Header) {
+	for key, values := range headers {
+		log.Printf("Header: %s = %v", key, values)
+	}
+}
+
+func logRequestBody(r *http.Request) {
+	if r.Body == nil {
+		return
 	}
 
-	if r.Body != nil {
-		bodyBytes, err := io.ReadAll(r.Body)
-		if err == nil {
-			defer r.Body.Close()
-			bodyStr := string(bodyBytes)
-			bodyStr = maskSensitiveData(bodyStr)
-			log.Printf("Body: %s", bodyStr)
-			r.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
-		} else {
-			log.Printf("Erro ao ler body: %v", err)
-		}
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Erro ao ler body: %v", err)
+		r.Body = io.NopCloser(strings.NewReader(""))
+		return
 	}
+	defer r.Body.Close()
+
+	bodyStr := maskSensitiveData(string(bodyBytes))
+	log.Printf("Body: %s", bodyStr)
+
+	r.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
 }
 
 type LogResponseWriter struct {
@@ -55,7 +66,6 @@ func (lrw *LogResponseWriter) Write(b []byte) (int, error) {
 }
 
 func LogResponse(lrw *LogResponseWriter) {
-	bodyStr := string(lrw.body)
-	bodyStr = maskSensitiveData(bodyStr)
+	bodyStr := maskSensitiveData(string(lrw.body))
 	log.Printf("<<< Resposta enviada: status: %d, body: %s", lrw.StatusCode, bodyStr)
 }
